@@ -28,7 +28,7 @@ Lệnh cài các công cụ Go đúng phiên bản: xem [docs/tech-stack.md](doc
 
 ## 3. Từ máy trống đến demo
 
-Bước 1–8 (phần `stock`, `order`) đã chạy được; các lệnh còn là placeholder sẽ được điền khi có code. Không chạy lệnh nào chưa được điền.
+Chạy các lệnh tại thư mục gốc repo, trừ bước web có `cd web`. Cài công cụ theo mục 2 trước khi bắt đầu.
 
 **1. Clone repo**
 
@@ -90,19 +90,23 @@ buf generate
 set -a; . ./.env; set +a
 go run ./services/stock/cmd/server   # cửa sổ terminal 1
 go run ./services/order/cmd/server   # cửa sổ terminal 2 (nạp .env như trên)
-# bff: <LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+go run ./services/bff/cmd/server     # cửa sổ terminal 3 (nạp .env như trên)
 ```
 
 **9. Chạy web**
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+set -a; . ./.env; set +a
+cd web
+pnpm install --frozen-lockfile
+pnpm build
+pnpm start
 ```
 
 **10. Mở trang** `/` của web, chọn một người dùng mẫu (mục 5).
 
 ```text
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+http://127.0.0.1:3000
 ```
 
 ## 4. Lệnh kiểm
@@ -114,6 +118,8 @@ go run ./services/order/cmd/server   # cửa sổ terminal 2 (nạp .env như tr
 | Unit test | `go test ./...` |
 | Test tích hợp | `go test -tags integration ./...` (điều kiện: [docs/specs/acceptance.md](docs/specs/acceptance.md), mục 3) |
 | Lint proto | `buf lint` |
+| Kiểu web | `cd web && pnpm typecheck` |
+| Build web | `cd web && pnpm build` |
 
 Trước khi chạy test tích hợp: PostgreSQL phải đang chạy (bước 3) và nạp `.env` (`set -a; . ./.env; set +a`). Test tự tạo và xóa CSDL riêng bằng `mini_owner`, chạy truy vấn bằng `mini_app`. Test tích hợp của sự kiện (AC-05 đến AC-08) cần NATS riêng cho test (Q36): `docker compose --env-file .env -f deploy/compose.yaml --profile test up -d --wait nats-test`.
 
@@ -133,7 +139,7 @@ Luồng demo đi theo các AC ([docs/specs/acceptance.md](docs/specs/acceptance.
 
 ## 6. Kết quả khi nộp
 
-Điền khi nộp. Cột "Lệnh đã chạy" ghi đúng lệnh đã gõ; đính kèm output thật. Quy tắc nộp bài: xem [docs/conventions.md](docs/conventions.md), mục 11. AC-08 cần cả lần chạy lặp lẫn lần đối chứng âm ([docs/specs/acceptance.md](docs/specs/acceptance.md), mục 4).
+Kết quả các ngày trước được giữ nguyên; kiểm Ngày 4 ghi bên dưới. Cột "Lệnh đã chạy" ghi đúng lệnh đã gõ; đính kèm output thật. Quy tắc nộp bài: xem [docs/conventions.md](docs/conventions.md), mục 11. AC-08 cần cả lần chạy lặp lẫn lần đối chứng âm ([docs/specs/acceptance.md](docs/specs/acceptance.md), mục 4).
 
 | AC | Đạt / Không | Lệnh đã chạy | Ngày chạy |
 |---|---|---|---|
@@ -151,18 +157,98 @@ Luồng demo đi theo các AC ([docs/specs/acceptance.md](docs/specs/acceptance.
 
 | Lệnh kiểm (mục 4) | Đạt / Không | Lệnh đã chạy | Ngày chạy |
 |---|---|---|---|
-| `gofmt` | | | |
-| `go vet` | | | |
-| `go test ./...` | | | |
-| `go test -tags integration ./...` | | | |
-| `buf lint` | | | |
+| `gofmt` | Đạt | `gofmt -l .` | 2026-10-26 |
+| `go vet` | Đạt | `GOCACHE=/tmp/neo-go-cache go vet ./...` | 2026-10-26 |
+| `go test ./...` | Đạt | `GOCACHE=/tmp/neo-go-cache go test -count=1 ./...` | 2026-10-26 |
+| `go test -tags integration ./...` | Đạt | `GOCACHE=/tmp/neo-go-cache go test -count=1 -tags integration ./...` | 2026-10-26 |
+| `buf lint` | Đạt | `/home/nhathuy/go/bin/buf lint` | 2026-10-26 |
+
+### Kiểm Ngày 4
+
+- AC-01 (client gửi giá): `GOCACHE=/tmp/neo-go-cache go test ./services/bff/...` đạt; handler bỏ trường giá và chuyển đúng dòng sang gRPC.
+- Unit test toàn repo: output các package có test đều `ok`; BFF: `ok github.com/tahnhuy/mini_neo/services/bff/internal/adapter/http 0.004s`.
+- Test tích hợp chạy lại: `ok` cho adapter gRPC, repo, app của order và adapter gRPC stock; exit code 0.
+- `gofmt -l .`, `go vet ./...`, `buf lint`: không có output, exit code 0.
+
+> **Gợi ý (ngoài đề):** `GOCACHE=/tmp/neo-go-cache` chỉ dùng cho môi trường kiểm có thư mục cache mặc định chỉ đọc. Máy cá nhân dùng lệnh ở mục 4. Các lỗi gRPC không có ánh xạ trong đề trả HTTP 500 theo gợi ý của [api-contract.md](docs/specs/api-contract.md), mục 4.
+
+- Web: `COREPACK_HOME=/tmp/neo-corepack pnpm install --frozen-lockfile --offline --store-dir /tmp/neo-pnpm-store`, `COREPACK_HOME=/tmp/neo-corepack pnpm typecheck`, `COREPACK_HOME=/tmp/neo-corepack pnpm build`: exit code 0. Output build:
+
+```text
+✓ Compiled successfully in 4.2s
+  Finished TypeScript in 1247ms ...
+✓ Generating static pages using 7 workers (5/5) in 409ms
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /orders
+├ ƒ /orders/[id]
+└ ƒ /orders/new
+```
+
+Kiểm HTTP thực tế trên bản production (không phải Playwright / EX-04), ngày 2026-10-26:
+
+```text
+AC-01 REST: giá client bị bỏ qua, tổng 2100000.00; AC-02 HTML SSR: an không có nút Duyệt/Từ chối; AC-04 REST: tenant B nhận 404
+4 route SSR đạt; chi có nút theo allowedActions; duyệt qua REST + sự kiện thật → RESERVED; trang tenant B hiện không tìm thấy
+REST: SELF_APPROVAL → 403; từ chối → 200; INVALID_TRANSITION → 409
+Server Actions qua form HTML: chọn an → cookie dev_user → /orders; tạo GHE-01 → chi tiết, tổng 850.000 ₫, không nút Duyệt: đạt
+```
+
+**Bổ sung ngoài đề (Q14, Q15, Q29, Q32, Q33, Q34, Q38):** BFF và web triển khai các quyết định này theo [hợp đồng](docs/specs/api-contract.md) và [web](docs/specs/web.md), không thêm endpoint. Không làm EX trong Ngày 4.
+
+**Gợi ý (ngoài đề):** Build dùng webpack do worker Turbopack bị môi trường kiểm chặn mở cổng nội bộ. TypeScript và các gói kiểu là công cụ build Next.js, không thêm thư viện nghiệp vụ. Theme dùng các token đã ghi ở [frontend.md](docs/specs/frontend.md#tokens). Lần kiểm ban đầu chưa dùng trình duyệt; kết quả cập nhật theo Figma ghi bên dưới.
+
+### Cập nhật giao diện theo Figma
+
+**Nguồn:** [Figma NEO Mini - Web](https://www.figma.com/design/VuykjXk2pbaOR9PlOGZtLv/Untitled), các frame desktop/mobile của bốn route; [đặc tả frontend](docs/specs/frontend.md). **Bổ sung ngoài đề (giao diện Figma):** font Inter lưu cục bộ kèm giấy phép, header tài khoản/đổi người dùng, thẻ mobile, màu trạng thái, skeleton, form mở/xác nhận/hủy từ chối. Không đổi hợp đồng hoặc thêm nghiệp vụ.
+
+Đã chạy `pnpm typecheck`, `pnpm build` thành công. Kiểm Chromium thực tế ở 1440px và 390px, chụp và xem ảnh đối chiếu; kết quả:
+
+```text
+PASS 1440 responsive layouts, SVG 6×6, reject open/cancel, Unicode count, allowedActions
+PASS 390 responsive layouts, SVG 6×6, reject open/cancel, Unicode count, allowedActions
+PASS real browser: create, reject, approve → RESERVED, tenant isolation
+PASS no browser errors
+```
+
+Cả năm SVG trạng thái tải từ Figma đã lưu trong `web/public/status`, kiểm file không rỗng và ảnh render đúng 6×6. Không thêm dependency ứng dụng; Playwright dùng tạm ngoài repo để kiểm, chưa coi là bộ test EX-04 được nộp.
+
+Các điểm lệch dữ liệu thiết kế đã biết vẫn áp dụng quyết định của bài: mặt hàng theo Q39; chi tiết đơn chỉ có SKU theo Q25; không thêm nhãn “Sắp hết” khi chưa có quy tắc ngưỡng (UI-05, UI-07, UI-08 trong docs frontend). Không phát sinh điểm CẦN XÁC NHẬN mới.
+
+### Rà 24 dòng checklist mục 10
+
+Thứ tự dòng giữ theo [checklist chấm](docs/specs/acceptance.md); bảng này chỉ ghi bằng chứng, không định nghĩa lại quy tắc.
+
+| Nhóm / dòng | Kết quả rà Ngày 4 |
+|---|---|
+| Chung 1 | Có bảng AC, lệnh và output thật ở trên |
+| Chung 2 | Cần người nộp tự giải thích code khi chấm; không thể xác nhận thay người nộp |
+| Chung 3 | `.env` bị ignore; cấu hình BFF/web đọc môi trường; chỉ nộp `.env.example` |
+| Chung 4 | File code viết tay ≤ 500 dòng; hàm BFF < 40 dòng; component React ≤ 200 dòng; mã sinh theo công cụ |
+| Chung 5 (NÊN) | Tên theo nghiệp vụ; comment giải thích lựa chọn; không có code bị comment trong phần mới |
+| Go 1 | `gofmt`, `go vet`, unit test đạt |
+| Go 2 | Domain và các adapter cũ giữ cấu trúc; BFF chỉ chuyển giao thức |
+| Go 3 | Quyền nghiệp vụ ở usecase; web chỉ kiểm capability tạo đơn theo đề |
+| Go 4 | Tiền chuyển nguyên chuỗi; `formatMoney()` dùng `BigInt`, không qua số thực |
+| Go 5 | BFF timeout gRPC 5 giây, web 7 giây; server dừng bằng signal và Shutdown |
+| CSDL 1–4 | Migration/RLS/sqlc giữ nguyên; test tích hợp chạy lại đạt; không sửa migration |
+| Sự kiện và nghiệp vụ 1–4 | Code ngày 3 giữ nguyên; AC-05–08 chạy lại đạt; bằng chứng AC-08 lặp và đối chứng âm ở bảng trên |
+| BFF và web 1 | BFF không có CSDL hoặc phép tính tổng/quyền nghiệp vụ |
+| BFF và web 2 | `fetch` chỉ trong `web/src/lib/data/index.ts` |
+| BFF và web 3 | Hai nút theo `allowedActions`; mọi tiền hiển thị qua `formatMoney()` |
+| BFF và web 4 (NÊN) | Trang là Server Component; Client chỉ form/nút và error boundary |
+| Hạ tầng 1 | Compose giữ image ghim và cổng loopback |
+| Hạ tầng 2 | Mục 3 đã có lệnh chạy đủ stock, order, BFF và web |
+
+Bài nộp được chuẩn bị trong working tree và đóng gói `neo-mini-day4.tar.gz` (không gồm `.env`, dependency cài sẵn hoặc build cache); chưa push hoặc gửi tới người chấm. Lịch sử ngày 1–3 đã có các commit riêng; thay đổi Ngày 4 chưa commit. Không đánh dấu hai việc này là đã làm.
 
 ## 7. Mục lục docs
 
 | File | Nội dung |
 |---|---|
 | [docs/source/neo-mini.md](docs/source/neo-mini.md) | Đề bài (nguồn sự thật, không sửa) |
-| [AGENTS.md](AGENTS.md) | Quy tắc viết docs và các quyết định đã chốt (Q1–Q39) |
+| [AGENTS.md](AGENTS.md) | Quy tắc viết docs và các quyết định đã chốt (Q1–Q45) |
 | [docs/tech-stack.md](docs/tech-stack.md) | Kiến trúc, thành phần, phiên bản ghim, cấu trúc repo, hạ tầng |
 | [docs/conventions.md](docs/conventions.md) | Quy tắc code, tiền, kiểm quyền, CSDL, web, test, Git; quyết định thiết kế |
 | [docs/specs/business-rules.md](docs/specs/business-rules.md) | Luồng nghiệp vụ, trạng thái đơn, người dùng và dữ liệu mẫu |

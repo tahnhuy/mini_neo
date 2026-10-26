@@ -1,0 +1,28 @@
+{
+  "name": "neo-mini-web",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": "24.x",
+    "pnpm": "11.x"
+  },
+  "packageManager": "pnpm@11.0.0",
+  "dependencies": {
+    "@tailwindcss/postcss": "4.1.0",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "tailwindcss": "4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.0",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: Inter;
+  src: url('/fonts/InterVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: Inter, Arial, sans-serif;
+  --color-neo-background: #f7f8fa;
+  --color-neo-surface: #ffffff;
+  --color-neo-border: #dce1e8;
+  --color-neo-text: #18202c;
+  --color-neo-muted: #596474;
+  --color-neo-primary: #3546a6;
+  --color-neo-danger: #ad2130;
+  --color-neo-danger-bg: #fff0f2;
+  --color-neo-subtle: #f2f4f7;
+  --color-neo-disabled: #e8ebf0;
+  --color-neo-disabled-text: #667085;
+  --color-neo-disabled-border: #e4e7ec;
+  --color-neo-skeleton: #e5e9ef;
+  --color-neo-info: #364570;
+  --color-neo-info-bg: #f0f5ff;
+  --color-neo-pending: #805800;
+  --color-neo-pending-bg: #fff5d6;
+  --color-neo-approved: #155e91;
+  --color-neo-approved-bg: #eaf4fc;
+  --color-neo-reserved: #176442;
+  --color-neo-reserved-bg: #e8f5ec;
+  --color-neo-out-of-stock: #994212;
+  --color-neo-out-of-stock-bg: #fff0e5;
+  --color-neo-rejected: #744291;
+  --color-neo-rejected-bg: #f4ecfa;
+  --spacing: 0.25rem;
+  --spacing-page-gutter: 120px;
+  --spacing-quantity: 104px;
+  --spacing-skeleton-title: 360px;
+  --spacing-skeleton-description: 220px;
+  --container-page: 1440px;
+  --container-home: 880px;
+  --radius-panel: 8px;
+  --radius-control: 6px;
+  --radius-tag: 4px;
+  --text-title: 28px;
+  --text-title--line-height: 1.5;
+  --text-mobile-title: 24px;
+  --text-mobile-title--line-height: 1.5;
+}
+
+@layer base {
+  body { @apply bg-neo-background text-neo-text font-sans text-sm leading-normal; }
+  h1 { @apply text-mobile-title font-semibold md:text-title; }
+  h2 { @apply text-lg font-semibold; }
+  a { @apply no-underline; }
+  button, input, textarea { font: inherit; }
+  button { @apply cursor-pointer; }
+  button:disabled { @apply cursor-not-allowed; }
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+    @apply outline-2 outline-offset-2 outline-neo-primary;
+  }
+  input[type=number], textarea { @apply border border-neo-border rounded-control bg-neo-surface text-neo-text; }
+  input[type=number] { @apply w-quantity h-11 px-3 text-right; }
+  textarea { @apply w-full min-h-28 p-3 resize-y; }
+  input:disabled, textarea:disabled { @apply bg-neo-subtle text-neo-disabled-text; }
+  small { @apply block text-neo-muted text-xs mt-1; }
+}
+
+@layer components {
+  .muted { @apply text-neo-muted font-normal; }
+  .caption { @apply text-xs leading-normal; }
+  .money { @apply font-semibold tabular-nums whitespace-nowrap; }
+  .align-right { @apply text-right; }
+  .panel { @apply bg-neo-surface border border-neo-border rounded-panel; }
+  .button {
+    @apply inline-flex items-center justify-center gap-2 min-h-11 px-4 py-2.5 border border-neo-primary rounded-control bg-neo-primary text-neo-surface font-semibold text-sm whitespace-nowrap transition-colors;
+  }
+  .button:hover:not(:disabled) { @apply brightness-95; }
+  .button:disabled { @apply bg-neo-disabled text-neo-disabled-text border-neo-disabled-border; }
+  .button-secondary { @apply bg-neo-surface text-neo-text border-neo-border; }
+  .button-danger { @apply bg-neo-danger text-neo-surface border-neo-border; }
+
+  .app-header { @apply w-full bg-neo-surface border-b border-neo-border; }
+  .header-inner {
+    @apply max-w-page mx-auto px-5 min-h-20 grid items-center gap-x-3;
+    grid-template-columns: 1fr auto;
+  }
+  .brand { @apply text-xl font-semibold text-neo-text; }
+  .header-identity { @apply flex flex-col gap-2; grid-column: 1 / -1; grid-row: 2; }
+  .identity-name { @apply flex items-center gap-2; }
+  .capability-tags { @apply flex flex-wrap gap-1.5; }
+  .capability { @apply bg-neo-subtle rounded-tag px-2 py-0.5 text-xs leading-normal; }
+  .switch-user { grid-column: 2; grid-row: 1; }
+  .app-header-account .header-inner { @apply py-4 gap-y-3; }
+  .page-content { @apply max-w-page mx-auto px-5 pt-6 pb-12 md:pt-10; }
+  .page-stack { @apply flex flex-col gap-6; }
+  .page-stack:empty { @apply hidden; }
+  .page-title { @apply flex justify-between items-center gap-4; }
+  .page-intro { @apply flex flex-col gap-2; }
+  .back-link { @apply text-neo-muted min-h-11 inline-flex items-center self-start hover:text-neo-text; }
+  .order-intro { @apply flex flex-col gap-3; }
+  .order-title { @apply flex flex-wrap items-center gap-3 md:gap-4; }
+
+  .home-content { @apply max-w-home mx-auto py-8 px-5 flex flex-col gap-8 md:pt-16 md:pb-12; }
+  .intro { @apply flex flex-col gap-3; }
+  .user-grid { @apply grid grid-cols-1 md:grid-cols-2 gap-4; }
+  .user-card { @apply bg-neo-surface border border-neo-border rounded-panel p-6 flex flex-col gap-5; }
+  .user-card h2 { @apply text-xl; }
+  .user-card-identity { @apply flex flex-col gap-1; }
+  .user-card .button { @apply w-full; }
+
+  .badge { @apply inline-flex items-center gap-1.5 rounded-tag px-2.5 py-1.25 text-xs font-semibold whitespace-nowrap; }
+  .badge img { @apply shrink-0; }
+  .badge-pending { @apply bg-neo-pending-bg text-neo-pending; }
+  .badge-approved { @apply bg-neo-approved-bg text-neo-approved; }
+  .badge-reserved { @apply bg-neo-reserved-bg text-neo-reserved; }
+  .badge-out-of-stock { @apply bg-neo-out-of-stock-bg text-neo-out-of-stock; }
+  .badge-rejected { @apply bg-neo-rejected-bg text-neo-rejected; }
+
+  .responsive-table { @apply flex flex-col gap-3 bg-transparent border-0 rounded-none; }
+  .responsive-table .table-heading { @apply hidden; }
+  .mobile-label { @apply block; }
+  .order-row, .line-row, .stock-row { @apply bg-neo-surface border border-neo-border rounded-panel p-4; }
+  .order-grid { @apply grid gap-y-4 gap-x-3 items-center; grid-template-columns: 1fr auto; }
+  .order-code { grid-column: 1; grid-row: 1; }
+  .order-status { @apply justify-self-end; grid-column: 2; grid-row: 1; }
+  .order-creator { @apply flex justify-between gap-4; grid-column: 1 / -1; grid-row: 2; }
+  .order-money { @apply flex justify-between gap-4; grid-column: 1 / -1; grid-row: 3; padding-right: calc(var(--spacing) * 23); }
+  .order-arrow { @apply justify-self-end; grid-column: 2; grid-row: 3; }
+  .order-row:hover { @apply bg-neo-subtle; }
+  .line-grid, .stock-grid { @apply grid gap-4; }
+  .line-row, .stock-row { @apply flex flex-col gap-4; }
+  .line-value, .stock-value { @apply flex items-center justify-between gap-4; }
+  .order-total { @apply flex justify-between gap-4 bg-neo-surface border border-neo-border rounded-panel p-4; }
+  .stock-price { @apply pt-1; }
+
+  .create-actions { @apply flex flex-col gap-4 pt-2; }
+  .create-actions .button { @apply w-full; }
+  .decision-actions { @apply flex justify-end gap-3; }
+  .decision-actions > button, .decision-actions > form { @apply flex-1 md:flex-none; }
+  .decision-actions form .button { @apply w-full; }
+  .reject-form { @apply flex flex-col gap-4 p-4 md:p-6; }
+  .reject-heading { @apply flex flex-col gap-1; }
+  .reject-heading label { @apply font-semibold; }
+  .reason-meta { @apply flex justify-between gap-4; }
+  .reason-meta > span { @apply shrink-0; }
+  .reject-actions { @apply flex gap-3 md:justify-end; }
+  .reject-actions .button { @apply flex-1 md:flex-none; }
+  .reject-reason { @apply p-4 md:p-6 flex flex-col gap-2; }
+  .reject-reason h2 { @apply text-sm; }
+  .reject-reason p { @apply break-words whitespace-pre-wrap; }
+
+  .alert { @apply flex items-start gap-4 rounded-tag border border-neo-border px-4 py-4; }
+  .alert-info { @apply bg-neo-info-bg text-neo-info; }
+  .alert-danger { @apply bg-neo-danger-bg text-neo-danger; }
+  .stock-notice { @apply flex flex-col gap-3 md:flex-row md:items-center; }
+  .stock-notice .alert { @apply flex-1; }
+  .stock-notice .button { @apply self-start; }
+  .state-view { @apply min-h-75 px-6 py-12 flex flex-col items-center justify-center gap-4 text-center; }
+  .state-view p { @apply break-words; }
+  .state-actions { @apply flex flex-wrap justify-center gap-3; }
+  .loading-view { @apply p-4 md:p-6 flex flex-col gap-6; }
+  .skeleton-row { @apply flex flex-col gap-3 pb-5 border-b border-neo-disabled; }
+  .skeleton { @apply bg-neo-skeleton rounded-tag max-w-full motion-safe:animate-pulse; }
+  .skeleton-title { @apply h-4 w-skeleton-title; }
+  .skeleton-description { @apply h-3 w-skeleton-description; }
+
+  @media (min-width: 768px) {
+    .header-inner, .page-content { @apply px-10; }
+    .header-inner { grid-template-columns: auto 1fr auto; }
+    .app-header-account .header-inner { @apply py-4.5; }
+    .header-identity { @apply flex-row items-center justify-self-end gap-3; grid-column: 2; grid-row: 1; }
+    .identity-name { @apply gap-3; }
+    .mobile-separator { @apply hidden; }
+    .switch-user { grid-column: 3; }
+    .home-content { @apply px-0; width: calc(100% - var(--spacing) * 20); }
+    .capability { @apply py-0.75; }
+    .responsive-table { @apply bg-neo-surface border border-neo-border rounded-panel overflow-hidden gap-0; }
+    .responsive-table .table-heading { @apply grid bg-neo-subtle text-neo-muted font-semibold px-6 py-3.5; }
+    .mobile-label { @apply hidden; }
+    .order-grid { @apply gap-6; grid-template-columns: minmax(140px, 1.4fr) minmax(70px, 1fr) minmax(130px, 1fr) minmax(110px, 1fr) 20px; }
+    .order-row { @apply min-h-19 px-6 py-5 border-0 border-b border-neo-disabled rounded-none; }
+    .order-row:last-child { @apply border-b-0; }
+    .order-code, .order-status, .order-creator, .order-money, .order-arrow { grid-column: auto; grid-row: auto; }
+    .order-creator { @apply block; }
+    .order-status { @apply justify-self-start; }
+    .order-money { @apply block text-right pr-0; }
+    .line-grid { @apply grid gap-6 items-center; grid-template-columns: minmax(120px, 1fr) 100px minmax(130px, 180px) minmax(130px, 180px); }
+    .line-row { @apply min-h-23 p-6 border-0 border-b border-neo-disabled rounded-none; }
+    .line-value { @apply block text-right; }
+    .order-total { @apply p-6 border-0 rounded-none; }
+    .stock-grid { @apply grid gap-6 items-center; grid-template-columns: minmax(120px, 1fr) minmax(130px, 180px) minmax(80px, 160px) minmax(104px, 140px); }
+    .stock-row { @apply min-h-25 px-6 py-5 border-0 border-b border-neo-disabled rounded-none; }
+    .stock-row:last-child { @apply border-b-0; }
+    .stock-value { @apply block; }
+    .stock-price { @apply text-right pt-0; }
+    .create-actions .button { @apply w-auto self-end; }
+  }
+  @media (min-width: 1200px) {
+    .header-inner, .page-content { @apply px-page-gutter; }
+    .order-grid { grid-template-columns: 300px minmax(70px, 1fr) 220px 220px 20px; }
+    .create-actions { @apply flex-row justify-between items-center; }
+  }
+}

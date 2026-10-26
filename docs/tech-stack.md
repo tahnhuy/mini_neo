@@ -83,7 +83,7 @@ Ghim đúng phiên bản dưới đây.
 | PostgreSQL | image `postgres:18.6` | Đề ghi `postgres:18`, ghim bản vá cụ thể (ví dụ `18.1`) nhưng không chốt số. Q4 chốt `18.6`, bản vá mới nhất của PostgreSQL 18 tại ngày 26/10/2026 (**bổ sung ngoài đề**) |
 | NATS | image `nats:2.15.1-alpine3.22` | Chạy với `-js` |
 | Node.js, pnpm | Node 24, pnpm 11 | |
-| Next.js, React, Tailwind CSS | 16.x, 19.x, 4.x | |
+| Next.js, React, Tailwind CSS | 16.x, 19.x, 4.x | Code ghim Next.js 16.4.3, React 19.3.1, Tailwind CSS 4.1.0 trong `web/package.json`; lockfile lưu dependency chính xác |
 | `protoc-gen-go` (plugin của `buf generate`) | v1.36.11 | Cùng bản `google.golang.org/protobuf` trong `go.mod` (Q40, **bổ sung ngoài đề**) |
 | `protoc-gen-go-grpc` (plugin của `buf generate`) | v1.6.2 | Q40, **bổ sung ngoài đề** |
 

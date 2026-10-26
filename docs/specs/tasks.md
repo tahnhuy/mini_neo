@@ -60,11 +60,13 @@ AC cần đạt: **AC-05, AC-06, AC-07, AC-08** (test tích hợp).
 
 AC cần đạt: phần web của AC-02 (không hiện nút Duyệt cho `an`, [acceptance.md](acceptance.md), mục 1); rà lại toàn bộ AC.
 
-- [ ] BFF: 7 endpoint REST, gắn danh tính, ánh xạ lỗi sang HTTP ([api-contract.md](api-contract.md), mục 4, 5, 6)
-- [ ] Bốn màn web ([web.md](web.md), mục 2, 3, 5)
-- [ ] `README.md` có lệnh chạy từ máy trống tới demo ([README.md](../../README.md))
-- [ ] Tự rà theo checklist mục 10 ([acceptance.md](acceptance.md), mục 6)
+- [x] BFF: 7 endpoint REST, gắn danh tính, ánh xạ lỗi sang HTTP ([api-contract.md](api-contract.md), mục 4, 5, 6)
+- [x] Bốn màn web ([web.md](web.md), mục 2, 3, 5)
+- [x] `README.md` có lệnh chạy từ máy trống tới demo ([README.md](../../README.md))
+- [x] Tự rà theo checklist mục 10 ([acceptance.md](acceptance.md), mục 6)
 - [ ] Nộp bài (mục "Nộp bài" bên dưới)
+
+Bằng chứng Ngày 4: [README.md, mục 6](../../README.md#6-kết-quả-khi-nộp). Chưa gửi bài hoặc tạo commit Ngày 4; mục nộp giữ mở. Phần web AC-02 đã kiểm HTML SSR production và bằng Chromium thật (README, mục "Cập nhật giao diện theo Figma").
 
 ## Làm thêm
 
@@ -81,5 +83,5 @@ Chỉ làm khi đã xong ngày 1–4. Nội dung từng EX: xem [acceptance.md](
 Quy tắc: xem [../conventions.md](../conventions.md), mục 11.
 
 - [ ] Gửi link repo (hoặc file nén)
-- [ ] Ghi danh sách mã AC đã đạt và kết quả thật của các lệnh kiểm vào bảng ở [README.md](../../README.md), mục 6
+- [x] Ghi danh sách mã AC đã đạt và kết quả thật của các lệnh kiểm vào bảng ở [README.md](../../README.md), mục 6
 - [ ] Lịch sử commit nhỏ theo từng bước, không dồn một commit cuối ngày 4

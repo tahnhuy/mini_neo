@@ -1,0 +1,3 @@
+# Web không dùng next/image; không cần chạy script cài đặt sharp.
+ignoredBuiltDependencies:
+  - sharp
