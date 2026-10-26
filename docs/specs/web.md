@@ -1,5 +1,7 @@
 # Web NEO Mini
 
+Thiết kế Figma và ánh xạ component: xem [frontend.md](frontend.md).
+
 > **Mục đích:** Định nghĩa 4 màn web, nội dung từng màn, các trạng thái bắt buộc, và cách web chọn nút hiển thị. Quy tắc code web nằm ở `conventions.md`; file này chỉ link tới.
 >
 > **Đối tượng đọc:** Người làm bài (ngày 4: web), người chấm bài.
@@ -20,7 +22,7 @@ Nhãn, nguồn và nhóm checklist của từng quy tắc nằm ở [../conventi
 | Nút theo `allowedActions` | [../conventions.md](../conventions.md), mục 8; cách áp từng màn ở mục 5 dưới đây |
 | Tiền qua `formatMoney()`, kiểu `1.250.000 ₫` | [../conventions.md](../conventions.md), mục 4 |
 | Giao diện tiếng Việt, chữ viết thẳng trong code | [../conventions.md](../conventions.md), mục 8 |
-| Màu, khoảng cách khai một lần trong theme Tailwind; không hex hay `style=` rải rác | [../conventions.md](../conventions.md), mục 8 |
+| Màu, khoảng cách khai một lần trong [theme Tailwind](frontend.md#tokens); không hex hay `style=` rải rác | [../conventions.md](../conventions.md), mục 8 |
 | Component React ≤ 200 dòng | [../conventions.md](../conventions.md), mục 3 |
 
 ## 2. Các màn
@@ -53,7 +55,7 @@ Nhãn, nguồn và nhóm checklist của từng quy tắc nằm ở [../conventi
 
 ## 4. Hàm trong `web/src/lib/data/`
 
-Mỗi endpoint REST của BFF ([api-contract.md](api-contract.md), mục 5) có một hàm trong `web/src/lib/data/`.
+Mỗi endpoint REST của BFF ([api-contract.md](api-contract.md), mục 5) có một hàm trong `web/src/lib/data/`; ánh xạ thiết kế theo [tên hàm lib/data](frontend.md#lib-data).
 
 | Hàm | Endpoint | Nguồn |
 |---|---|---|
