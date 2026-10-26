@@ -120,6 +120,27 @@ func TestApprove_AC09_RejectedInvalidTransition(t *testing.T) {
 	}
 }
 
+func TestApplyReservation(t *testing.T) {
+	tests := []struct {
+		from Status
+		held bool
+		want Status
+		ok   bool
+	}{
+		{StatusApproved, true, StatusReserved, true},
+		{StatusApproved, false, StatusOutOfStock, true},
+		{StatusPendingApproval, true, StatusPendingApproval, false},
+		{StatusReserved, false, StatusReserved, false},
+	}
+	for _, tt := range tests {
+		o := Order{Status: tt.from}
+		err := o.ApplyReservation(tt.held, now)
+		if (err == nil) != tt.ok || o.Status != tt.want {
+			t.Errorf("ApplyReservation(%v) từ %s: status = %s, err = %v", tt.held, tt.from, o.Status, err)
+		}
+	}
+}
+
 func TestReject(t *testing.T) {
 	tests := []struct {
 		name   string

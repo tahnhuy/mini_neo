@@ -1,4 +1,5 @@
-// Service đơn: đọc cấu hình từ biến môi trường, nối dây, chạy server gRPC.
+// Service đơn: đọc cấu hình từ biến môi trường, nối dây, chạy server gRPC,
+// relay outbox và consumer kết quả giữ hàng.
 package main
 
 import (
@@ -19,35 +20,42 @@ import (
 	orderv1 "github.com/tahnhuy/mini_neo/gen/go/mini/order/v1"
 	stockv1 "github.com/tahnhuy/mini_neo/gen/go/mini/stock/v1"
 	"github.com/tahnhuy/mini_neo/pkg/db"
+	"github.com/tahnhuy/mini_neo/pkg/outbox"
 	"github.com/tahnhuy/mini_neo/pkg/tenant/tenantgrpc"
 	grpcadapter "github.com/tahnhuy/mini_neo/services/order/internal/adapter/grpc"
 	"github.com/tahnhuy/mini_neo/services/order/internal/adapter/repo"
 	"github.com/tahnhuy/mini_neo/services/order/internal/adapter/stockclient"
+	"github.com/tahnhuy/mini_neo/services/order/internal/app"
 	"github.com/tahnhuy/mini_neo/services/order/internal/usecase"
 )
 
 type config struct {
-	databaseURL string
-	grpcAddr    string
-	stockTarget string
+	databaseURL      string
+	relayDatabaseURL string
+	grpcAddr         string
+	stockTarget      string
+	natsURL          string
 }
 
 func loadConfig() (config, error) {
 	cfg := config{
-		databaseURL: os.Getenv("ORDER_DATABASE_URL"),
-		grpcAddr:    os.Getenv("ORDER_GRPC_ADDR"),
-		stockTarget: os.Getenv("STOCK_GRPC_ADDR"),
+		databaseURL:      os.Getenv("ORDER_DATABASE_URL"),
+		relayDatabaseURL: os.Getenv("ORDER_RELAY_DATABASE_URL"),
+		grpcAddr:         envOr("ORDER_GRPC_ADDR", "127.0.0.1:50051"),
+		stockTarget:      envOr("STOCK_GRPC_ADDR", "127.0.0.1:50052"),
+		natsURL:          envOr("NATS_URL", "nats://127.0.0.1:4222"),
 	}
-	if cfg.databaseURL == "" {
-		return cfg, errors.New("thiếu biến môi trường ORDER_DATABASE_URL")
-	}
-	if cfg.grpcAddr == "" {
-		cfg.grpcAddr = "127.0.0.1:50051"
-	}
-	if cfg.stockTarget == "" {
-		cfg.stockTarget = "127.0.0.1:50052"
+	if cfg.databaseURL == "" || cfg.relayDatabaseURL == "" {
+		return cfg, errors.New("thiếu biến môi trường ORDER_DATABASE_URL hoặc ORDER_RELAY_DATABASE_URL")
 	}
 	return cfg, nil
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func main() {
@@ -66,11 +74,18 @@ func run(log *slog.Logger) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := openPool(ctx, cfg.databaseURL)
+	appPool, relayPool, err := openPools(ctx, cfg)
 	if err != nil {
 		return err
 	}
-	defer pool.Close()
+	defer appPool.Close()
+	defer relayPool.Close()
+
+	nc, js, err := outbox.Connect(ctx, cfg.natsURL)
+	if err != nil {
+		return err
+	}
+	defer nc.Close()
 
 	// Kết nối nội bộ trên máy, chưa có TLS: cách làm tạm của bài (api-contract.md, mục 6).
 	stockConn, err := grpc.NewClient(cfg.stockTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -79,14 +94,35 @@ func run(log *slog.Logger) error {
 	}
 	defer stockConn.Close()
 
+	wait := app.StartEvents(ctx, app.EventDeps{AppPool: appPool, RelayPool: relayPool, JS: js, Log: log})
+	defer wait() // chờ relay và consumer dừng trước khi đóng pool và NATS
+	return serve(ctx, log, newServer(appPool, stockConn, log), cfg.grpcAddr)
+}
+
+func newServer(pool *pgxpool.Pool, stockConn *grpc.ClientConn, log *slog.Logger) *grpc.Server {
 	orders := usecase.NewOrders(usecase.Deps{
-		Tx:    db.New(pool),
-		Repo:  repo.Orders{},
-		Stock: stockclient.New(stockv1.NewStockServiceClient(stockConn)),
+		Tx:     db.New(pool),
+		Repo:   repo.Orders{},
+		Stock:  stockclient.New(stockv1.NewStockServiceClient(stockConn)),
+		Outbox: repo.Outbox{},
 	})
 	srv := grpc.NewServer(grpc.UnaryInterceptor(tenantgrpc.UnaryServerInterceptor()))
 	orderv1.RegisterOrderServiceServer(srv, grpcadapter.NewServer(orders, grpcadapter.NewErrorMapper(log)))
-	return serve(ctx, log, srv, cfg.grpcAddr)
+	return srv
+}
+
+// openPools mở pool của mini_app (nghiệp vụ) và mini_relay (relay outbox).
+func openPools(ctx context.Context, cfg config) (*pgxpool.Pool, *pgxpool.Pool, error) {
+	appPool, err := openPool(ctx, cfg.databaseURL)
+	if err != nil {
+		return nil, nil, err
+	}
+	relayPool, err := openPool(ctx, cfg.relayDatabaseURL)
+	if err != nil {
+		appPool.Close()
+		return nil, nil, err
+	}
+	return appPool, relayPool, nil
 }
 
 func openPool(ctx context.Context, url string) (*pgxpool.Pool, error) {

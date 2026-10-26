@@ -115,7 +115,7 @@ go run ./services/order/cmd/server   # cửa sổ terminal 2 (nạp .env như tr
 | Test tích hợp | `go test -tags integration ./...` (điều kiện: [docs/specs/acceptance.md](docs/specs/acceptance.md), mục 3) |
 | Lint proto | `buf lint` |
 
-Trước khi chạy test tích hợp: PostgreSQL phải đang chạy (bước 3) và nạp `.env` (`set -a; . ./.env; set +a`). Test tự tạo và xóa CSDL riêng bằng `mini_owner`, chạy truy vấn bằng `mini_app`. NATS riêng cho test (Q36, cần từ ngày 3): `docker compose --env-file .env -f deploy/compose.yaml --profile test up -d --wait nats-test`.
+Trước khi chạy test tích hợp: PostgreSQL phải đang chạy (bước 3) và nạp `.env` (`set -a; . ./.env; set +a`). Test tự tạo và xóa CSDL riêng bằng `mini_owner`, chạy truy vấn bằng `mini_app`. Test tích hợp của sự kiện (AC-05 đến AC-08) cần NATS riêng cho test (Q36): `docker compose --env-file .env -f deploy/compose.yaml --profile test up -d --wait nats-test`.
 
 `go test ./...`, `go test -tags integration ./...` và `buf lint` là nguyên văn của đề. Đề chỉ ghi tên `gofmt` và `go vet`; cờ `-l .` và đối số `./...` là cách gọi chuẩn của hai công cụ này, không phải script của repo.
 
@@ -142,11 +142,11 @@ Luồng demo đi theo các AC ([docs/specs/acceptance.md](docs/specs/acceptance.
 | AC-03 | Đạt | `go test -count=1 -run AC03 -v ./services/order/...` | 2026-10-26 |
 | AC-04 (SQL) | Đạt | `go test -count=1 -tags integration -run AC04 -v ./services/order/...` | 2026-10-26 |
 | AC-04 (API) | Đạt | `go test -count=1 -tags integration -run AC04 -v ./services/order/...` | 2026-10-26 |
-| AC-05 | | | |
-| AC-06 | | | |
-| AC-07 | | | |
-| AC-08 (≥ 20 lần, có khóa) | | | |
-| AC-08 (đối chứng âm, bỏ khóa: phải đỏ) | | | |
+| AC-05 | Đạt | `go test -count=1 -tags integration -run AC05 -v ./services/order/...` | 2026-10-26 |
+| AC-06 | Đạt | `go test -count=1 -tags integration -run AC06 -v ./services/order/...` | 2026-10-26 |
+| AC-07 | Đạt | `go test -count=1 -tags integration -run AC07 -v ./services/order/...` | 2026-10-26 |
+| AC-08 (≥ 20 lần, có khóa) | Đạt: 20/20 xanh, chạy 4 lượt | `go test -tags integration -run AC08 -count=20 -v ./services/order/...` | 2026-10-26 |
+| AC-08 (đối chứng âm, bỏ khóa: phải đỏ) | Đạt: đỏ 20/20, chạy 3 lượt; lỗi `trạng thái hai đơn = map[RESERVED:2]` | Bỏ `FOR UPDATE` trong `LockStockLevels` (`services/stock/queries/events.sql`), `sqlc generate`, rồi chạy lệnh như dòng trên; xong thì khôi phục | 2026-10-26 |
 | AC-09 | Đạt | `go test -count=1 -run AC09 -v ./services/order/...` | 2026-10-26 |
 
 | Lệnh kiểm (mục 4) | Đạt / Không | Lệnh đã chạy | Ngày chạy |

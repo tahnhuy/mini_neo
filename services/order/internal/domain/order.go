@@ -170,6 +170,15 @@ func (o *Order) Reject(decidedBy, reason string, now time.Time) error {
 	return nil
 }
 
+// ApplyReservation nhận kết quả của kho: held = true thì sang RESERVED,
+// ngược lại sang OUT_OF_STOCK. Chỉ hợp lệ khi đơn đang APPROVED.
+func (o *Order) ApplyReservation(held bool, now time.Time) error {
+	if held {
+		return o.transition(StatusReserved, now)
+	}
+	return o.transition(StatusOutOfStock, now)
+}
+
 // AllowedActions tính nút được hiện cho người gọi: chỉ khi đơn chờ duyệt,
 // người gọi có quyền duyệt và không phải người lập (docs/specs/api-contract.md, mục 1).
 func (o Order) AllowedActions(canApprove bool, caller string) []string {

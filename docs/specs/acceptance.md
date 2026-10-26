@@ -65,6 +65,8 @@ Lệnh chạy unit test và test tích hợp: xem [README.md](../../README.md), 
 | Đối chứng âm | Tạm bỏ `FOR UPDATE` ([events.md](events.md), mục 7) thì test phải đỏ. Test không đỏ khi bỏ khóa là test chưa chứng minh được gì |
 | Ghi lại kết quả | Ghi cả hai lần chạy vào bảng kết quả ở [README.md](../../README.md), mục 6: lần chạy lặp có khóa (xanh) và lần đối chứng âm không khóa (đỏ), kèm output thật |
 
+Cách test các AC sự kiện: Q45 (**bổ sung ngoài đề**). Kết quả thật ngày 26/10/2026: có khóa xanh 20/20 (4 lượt); bỏ khóa đỏ 20/20 (3 lượt), lỗi `trạng thái hai đơn = map[RESERVED:2]`.
+
 > **Gợi ý (ngoài đề):**
 > - Có thể chạy lặp bằng cờ `-count` của `go test`, ví dụ `go test -tags integration -run AC08 -count=20 ./...`. `-count` cũng bỏ qua cache kết quả test.
 > - Làm đối chứng âm trên một nhánh tạm: bỏ `FOR UPDATE` trong file query, sinh lại sqlc, chạy test, lưu output, rồi bỏ nhánh. Không merge nhánh này.

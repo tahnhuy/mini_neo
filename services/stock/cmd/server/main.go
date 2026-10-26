@@ -1,4 +1,5 @@
-// Service kho: đọc cấu hình từ biến môi trường, nối dây, chạy server gRPC.
+// Service kho: đọc cấu hình từ biến môi trường, nối dây, chạy server gRPC,
+// relay outbox và consumer stock.reserve.
 package main
 
 import (
@@ -17,29 +18,39 @@ import (
 
 	stockv1 "github.com/tahnhuy/mini_neo/gen/go/mini/stock/v1"
 	"github.com/tahnhuy/mini_neo/pkg/db"
+	"github.com/tahnhuy/mini_neo/pkg/outbox"
 	"github.com/tahnhuy/mini_neo/pkg/tenant/tenantgrpc"
 	grpcadapter "github.com/tahnhuy/mini_neo/services/stock/internal/adapter/grpc"
 	"github.com/tahnhuy/mini_neo/services/stock/internal/adapter/repo"
+	"github.com/tahnhuy/mini_neo/services/stock/internal/app"
 	"github.com/tahnhuy/mini_neo/services/stock/internal/usecase"
 )
 
 type config struct {
-	databaseURL string
-	grpcAddr    string
+	databaseURL      string
+	relayDatabaseURL string
+	grpcAddr         string
+	natsURL          string
 }
 
 func loadConfig() (config, error) {
 	cfg := config{
-		databaseURL: os.Getenv("STOCK_DATABASE_URL"),
-		grpcAddr:    os.Getenv("STOCK_GRPC_ADDR"),
+		databaseURL:      os.Getenv("STOCK_DATABASE_URL"),
+		relayDatabaseURL: os.Getenv("STOCK_RELAY_DATABASE_URL"),
+		grpcAddr:         envOr("STOCK_GRPC_ADDR", "127.0.0.1:50052"),
+		natsURL:          envOr("NATS_URL", "nats://127.0.0.1:4222"),
 	}
-	if cfg.databaseURL == "" {
-		return cfg, errors.New("thiếu biến môi trường STOCK_DATABASE_URL")
-	}
-	if cfg.grpcAddr == "" {
-		cfg.grpcAddr = "127.0.0.1:50052"
+	if cfg.databaseURL == "" || cfg.relayDatabaseURL == "" {
+		return cfg, errors.New("thiếu biến môi trường STOCK_DATABASE_URL hoặc STOCK_RELAY_DATABASE_URL")
 	}
 	return cfg, nil
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func main() {
@@ -58,13 +69,27 @@ func run(log *slog.Logger) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := openPool(ctx, cfg.databaseURL)
+	appPool, err := openPool(ctx, cfg.databaseURL)
 	if err != nil {
 		return err
 	}
-	defer pool.Close()
+	defer appPool.Close()
+	relayPool, err := openPool(ctx, cfg.relayDatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer relayPool.Close()
 
-	items := usecase.NewItems(db.New(pool), repo.Items{})
+	nc, js, err := outbox.Connect(ctx, cfg.natsURL)
+	if err != nil {
+		return err
+	}
+	defer nc.Close()
+
+	wait := app.StartEvents(ctx, app.EventDeps{AppPool: appPool, RelayPool: relayPool, JS: js, Log: log})
+	defer wait() // chờ relay và consumer dừng trước khi đóng pool và NATS
+
+	items := usecase.NewItems(db.New(appPool), repo.Items{})
 	srv := grpc.NewServer(grpc.UnaryInterceptor(tenantgrpc.UnaryServerInterceptor()))
 	stockv1.RegisterStockServiceServer(srv, grpcadapter.NewServer(items, log))
 	return serve(ctx, log, srv, cfg.grpcAddr)

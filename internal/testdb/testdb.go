@@ -36,25 +36,51 @@ var (
 	Stock = Migration{Dir: "services/stock/migrations", Table: "goose_mini_stock"}
 )
 
+// Pools là các pool kết nối tới cùng một CSDL test.
+type Pools struct {
+	App   *pgxpool.Pool // vai trò mini_app: chịu RLS
+	Relay *pgxpool.Pool // vai trò mini_relay: BYPASSRLS, chỉ có quyền trên outbox
+}
+
 // NewAppPool tạo CSDL test, chạy các migration, rồi trả pool kết nối bằng mini_app.
 // CSDL bị xóa khi test kết thúc.
 func NewAppPool(t testing.TB, migrations ...Migration) *pgxpool.Pool {
 	t.Helper()
-	ownerURL, appURL := mustEnv(t, "TEST_OWNER_DATABASE_URL"), mustEnv(t, "TEST_APP_DATABASE_URL")
+	return newPools(t, false, migrations).App
+}
+
+// NewPools như NewAppPool nhưng trả thêm pool mini_relay cho relay outbox.
+func NewPools(t testing.TB, migrations ...Migration) Pools {
+	t.Helper()
+	return newPools(t, true, migrations)
+}
+
+func newPools(t testing.TB, withRelay bool, migrations []Migration) Pools {
+	t.Helper()
+	ownerURL := mustEnv(t, "TEST_OWNER_DATABASE_URL")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	name := randomName(t)
 	createDatabase(ctx, t, ownerURL, name)
 	t.Cleanup(func() { dropDatabase(t, ownerURL, name) })
-
 	for _, m := range migrations {
 		migrate(ctx, t, withDatabase(t, ownerURL, name), m)
 	}
-	pool, err := pgxpool.New(ctx, withDatabase(t, appURL, name))
-	if err != nil {
-		t.Fatalf("testdb: mở pool mini_app: %v", err)
+	p := Pools{App: openPool(ctx, t, withDatabase(t, mustEnv(t, "TEST_APP_DATABASE_URL"), name))}
+	if withRelay {
+		p.Relay = openPool(ctx, t, withDatabase(t, mustEnv(t, "TEST_RELAY_DATABASE_URL"), name))
 	}
+	return p
+}
+
+func openPool(ctx context.Context, t testing.TB, url string) *pgxpool.Pool {
+	t.Helper()
+	pool, err := pgxpool.New(ctx, url)
+	if err != nil {
+		t.Fatalf("testdb: mở pool: %v", err)
+	}
+	// Đóng pool trước khi xóa CSDL (Cleanup chạy ngược thứ tự đăng ký).
 	t.Cleanup(pool.Close)
 	return pool
 }

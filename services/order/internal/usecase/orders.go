@@ -53,11 +53,12 @@ type View struct {
 
 // Deps gom phụ thuộc của Orders.
 type Deps struct {
-	Tx    TxRunner
-	Repo  OrderRepo
-	Stock StockClient
-	Now   func() time.Time
-	NewID func() (uuid.UUID, error)
+	Tx     TxRunner
+	Repo   OrderRepo
+	Stock  StockClient
+	Outbox OutboxWriter
+	Now    func() time.Time
+	NewID  func() (uuid.UUID, error)
 }
 
 // Orders là các usecase về đơn.

@@ -76,7 +76,7 @@ func newOrderClient(t *testing.T) orderv1.OrderServiceClient {
 	})
 	orderConn := serveBufconn(t, func(s *grpc.Server) {
 		orders := orderuc.NewOrders(orderuc.Deps{
-			Tx: db.New(pool), Repo: orderrepo.Orders{},
+			Tx: db.New(pool), Repo: orderrepo.Orders{}, Outbox: orderrepo.Outbox{},
 			Stock: stockclient.New(stockv1.NewStockServiceClient(stockConn)),
 		})
 		orderv1.RegisterOrderServiceServer(s, ordergrpc.NewServer(orders, ordergrpc.NewErrorMapper(quiet)))

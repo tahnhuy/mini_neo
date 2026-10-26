@@ -47,14 +47,14 @@ AC cần đạt: **AC-05, AC-06, AC-07, AC-08** (test tích hợp).
 
 **Ghi chú Q13:** Mục 8 của đề ghi ngày 3 là "AC-05 đến AC08". Câu này được hiểu là AC-05 đến AC-08; file nguồn không sửa.
 
-- [ ] Ghi outbox trong cùng giao dịch với thay đổi nghiệp vụ ([events.md](events.md), mục 4)
-- [ ] Relay: goroutine, chu kỳ khoảng 500 ms, dừng khi tắt server ([events.md](events.md), mục 4)
-- [ ] Stream `MINI` và các durable consumer ([events.md](events.md), mục 6)
-- [ ] Inbox: 4 bước trong một giao dịch, ack sau commit ([events.md](events.md), mục 5)
-- [ ] Stock giữ hàng cho cả đơn, khóa `FOR UPDATE` theo `sku` ([events.md](events.md), mục 7)
-- [ ] Order nhận kết quả, chuyển đơn sang `RESERVED` hoặc `OUT_OF_STOCK`; bỏ qua sự kiện đến muộn ([events.md](events.md), mục 8, 9)
-- [ ] Test tích hợp AC-05 đến AC-08, dùng CSDL và NATS riêng cho test ([acceptance.md](acceptance.md), mục 1, 3)
-- [ ] Chạy AC-08 ít nhất 20 lần liền và làm đối chứng âm ([acceptance.md](acceptance.md), mục 4)
+- [x] Ghi outbox trong cùng giao dịch với thay đổi nghiệp vụ ([events.md](events.md), mục 4)
+- [x] Relay: goroutine, chu kỳ khoảng 500 ms, dừng khi tắt server ([events.md](events.md), mục 4)
+- [x] Stream `MINI` và các durable consumer ([events.md](events.md), mục 6)
+- [x] Inbox: 4 bước trong một giao dịch, ack sau commit ([events.md](events.md), mục 5)
+- [x] Stock giữ hàng cho cả đơn, khóa `FOR UPDATE` theo `sku` ([events.md](events.md), mục 7)
+- [x] Order nhận kết quả, chuyển đơn sang `RESERVED` hoặc `OUT_OF_STOCK`; bỏ qua sự kiện đến muộn ([events.md](events.md), mục 8, 9)
+- [x] Test tích hợp AC-05 đến AC-08, dùng CSDL và NATS riêng cho test ([acceptance.md](acceptance.md), mục 1, 3)
+- [x] Chạy AC-08 ít nhất 20 lần liền và làm đối chứng âm ([acceptance.md](acceptance.md), mục 4)
 
 ## Ngày 4: BFF, web, README, nộp
 

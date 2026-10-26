@@ -104,6 +104,8 @@ COMMIT;
 
 Relay có thể gửi xong rồi chết trước khi đánh dấu, nên một sự kiện có thể **đến hai lần**. Bên nhận phải tự chống trùng (mục 5).
 
+Cách cài đặt cụ thể của relay và consumer (pool `mini_relay`, `Term`/`NakWithDelay`, `PullMaxMessages(1)`, dừng êm): Q43, **bổ sung ngoài đề**.
+
 > **Gợi ý (ngoài đề):** JetStream dùng header `Nats-Msg-Id` để bỏ tin trùng trong một cửa sổ thời gian. Cơ chế này chỉ giảm trùng ở phía NATS, không thay được inbox ở bên nhận.
 
 ## 5. Nhận sự kiện bằng inbox
@@ -155,6 +157,8 @@ SELECT sku, on_hand, reserved
 **Kiểm trong Go:**
 - Mọi dòng đều có `on_hand - reserved >= quantity` thì cộng `reserved` cho tất cả, và phát `mini.stk.reservation.held`.
 - Thiếu một dòng thì không cộng dòng nào, và phát `mini.stk.reservation.failed` với `shortSkus[]` là các mã thiếu.
+
+**Ghi tồn mới (Q44, bổ sung ngoài đề):** Go ghi giá trị `reserved` tuyệt đối đã tính (`SET reserved = $n`), không ghi `reserved + n`. Nhờ vậy, nếu ai bỏ `FOR UPDATE` thì hai giao dịch ghi đè nhau và test AC-08 đỏ, thay vì `CHECK` âm thầm cứu kết quả.
 
 **Lưới an toàn:** Ràng buộc `CHECK` trên `stock_items` ([data-model.md](data-model.md), mục 3) là lưới an toàn cuối. Không dựa vào nó để kiểm.
 

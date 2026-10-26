@@ -5,19 +5,20 @@
 package sqlcdb
 
 import (
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type MiniStockInbox struct {
-	TenantID    pgtype.UUID
+	TenantID    uuid.UUID
 	Consumer    string
-	EventID     pgtype.UUID
+	EventID     uuid.UUID
 	ProcessedAt pgtype.Timestamptz
 }
 
 type MiniStockOutbox struct {
-	ID          pgtype.UUID
-	TenantID    pgtype.UUID
+	ID          uuid.UUID
+	TenantID    uuid.UUID
 	Type        string
 	Payload     []byte
 	CreatedAt   pgtype.Timestamptz
@@ -25,22 +26,22 @@ type MiniStockOutbox struct {
 }
 
 type MiniStockReservation struct {
-	ID        pgtype.UUID
-	TenantID  pgtype.UUID
-	OrderID   pgtype.UUID
+	ID        uuid.UUID
+	TenantID  uuid.UUID
+	OrderID   uuid.UUID
 	Status    string
 	CreatedAt pgtype.Timestamptz
 }
 
 type MiniStockReservationLine struct {
-	TenantID      pgtype.UUID
-	ReservationID pgtype.UUID
+	TenantID      uuid.UUID
+	ReservationID uuid.UUID
 	Sku           string
 	Quantity      int32
 }
 
 type MiniStockStockItem struct {
-	TenantID     pgtype.UUID
+	TenantID     uuid.UUID
 	Sku          string
 	Name         string
 	UnitPrice    pgtype.Numeric

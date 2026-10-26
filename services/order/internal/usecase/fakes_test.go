@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/tahnhuy/mini_neo/pkg/outbox"
 	"github.com/tahnhuy/mini_neo/pkg/tenant"
 	"github.com/tahnhuy/mini_neo/services/order/internal/domain"
 )
@@ -96,7 +97,7 @@ func newTestOrders() (*Orders, *fakeRepo, *fakeStock) {
 	repo := newFakeRepo()
 	stock := &fakeStock{prices: map[string]domain.Money{"BAN-01": vnd(1250000), "GHE-01": vnd(850000)}}
 	u := NewOrders(Deps{
-		Tx: fakeTx{}, Repo: repo, Stock: stock,
+		Tx: fakeTx{}, Repo: repo, Stock: stock, Outbox: &fakeOutbox{},
 		Now: func() time.Time { return time.Date(2026, 10, 26, 3, 15, 0, 0, time.UTC) },
 	})
 	return u, repo, stock
@@ -123,4 +124,12 @@ func assertDomainErr(t *testing.T, err error, kind domain.Kind, reason string) {
 	if de.Kind != kind || de.Reason != reason {
 		t.Fatalf("err = kind %v reason %q, want kind %v reason %q", de.Kind, de.Reason, kind, reason)
 	}
+}
+
+// fakeOutbox ghi lại phong bì thay cho bảng outbox.
+type fakeOutbox struct{ envs []outbox.Envelope }
+
+func (f *fakeOutbox) Add(_ context.Context, _ pgx.Tx, env outbox.Envelope) error {
+	f.envs = append(f.envs, env)
+	return nil
 }
