@@ -1,0 +1,52 @@
+// Hợp đồng gRPC của service kho (docs/specs/api-contract.md, mục 1, 2).
+syntax = "proto3";
+
+package mini.stock.v1;
+
+option go_package = "github.com/tahnhuy/mini_neo/gen/go/mini/stock/v1;stockv1";
+
+// StockService: mặt hàng và tồn kho của một tenant.
+service StockService {
+  // ListItems trả mọi mặt hàng của tenant, kèm tồn khả dụng.
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+  // GetItems chỉ service đơn gọi, để lấy đơn giá lúc tạo đơn (Q8, Q27).
+  rpc GetItems(GetItemsRequest) returns (GetItemsResponse);
+}
+
+// Money: tiền là chuỗi thập phân kèm mã tiền tệ, không dùng số thực.
+message Money {
+  // Ví dụ "1250000.00".
+  string amount = 1;
+  // Bài chỉ dùng "VND".
+  string currency_code = 2;
+}
+
+message Item {
+  string sku = 1;
+  string name = 2;
+  Money unit_price = 3;
+  int32 on_hand = 4;
+  int32 reserved = 5;
+  // available = on_hand - reserved, do service kho tính.
+  int32 available = 6;
+}
+
+message ListItemsRequest {}
+
+message ListItemsResponse {
+  repeated Item items = 1;
+}
+
+message GetItemsRequest {
+  repeated string skus = 1;
+}
+
+message ItemPrice {
+  string sku = 1;
+  Money unit_price = 2;
+}
+
+message GetItemsResponse {
+  // Chỉ chứa các mã tìm thấy; bên gọi tự so khớp (Q27).
+  repeated ItemPrice items = 1;
+}

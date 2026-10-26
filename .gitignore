@@ -1,0 +1,17 @@
+# Cấu hình thật (mật khẩu) không bao giờ commit; chỉ commit .env.example.
+.env
+*.env.local
+
+# Go
+/bin/
+*.test
+*.out
+coverage.*
+
+# Web
+web/node_modules/
+web/.next/
+
+# Editor
+.idea/
+.vscode/

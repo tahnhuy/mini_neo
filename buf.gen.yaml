@@ -1,0 +1,10 @@
+# Plugin chạy cục bộ: protoc-gen-go v1.36.11 (cùng bản google.golang.org/protobuf trong go.mod)
+# và protoc-gen-go-grpc v1.6.2. Mã sinh commit vào gen/go/.
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: gen/go
+    opt: paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: gen/go
+    opt: paths=source_relative

@@ -4,7 +4,7 @@
 >
 > **Đối tượng đọc:** Người làm bài (trước ngày 1), người chấm bài.
 >
-> **Nguồn:** mục 3, 4.1 của đề; mục 4.4 (gói `pkg/db`), mục 10 (nhóm Hạ tầng), mục 11 (đọc thêm); quyết định Q4, Q18.
+> **Nguồn:** mục 3, 4.1 của đề; mục 4.4 (gói `pkg/db`), mục 10 (nhóm Hạ tầng), mục 11 (đọc thêm); quyết định Q4, Q18, Q40, Q41, Q42.
 
 Quy tắc code, tiền, kiểm quyền: xem [conventions.md](conventions.md). Bảng và cột: xem [specs/data-model.md](specs/data-model.md). RPC và REST: xem [specs/api-contract.md](specs/api-contract.md). Sự kiện: xem [specs/events.md](specs/events.md).
 
@@ -84,6 +84,20 @@ Ghim đúng phiên bản dưới đây.
 | NATS | image `nats:2.15.1-alpine3.22` | Chạy với `-js` |
 | Node.js, pnpm | Node 24, pnpm 11 | |
 | Next.js, React, Tailwind CSS | 16.x, 19.x, 4.x | |
+| `protoc-gen-go` (plugin của `buf generate`) | v1.36.11 | Cùng bản `google.golang.org/protobuf` trong `go.mod` (Q40, **bổ sung ngoài đề**) |
+| `protoc-gen-go-grpc` (plugin của `buf generate`) | v1.6.2 | Q40, **bổ sung ngoài đề** |
+
+Cài các công cụ Go đúng phiên bản (cần `$(go env GOPATH)/bin` trong `PATH`):
+
+```bash
+go install github.com/bufbuild/buf/cmd/buf@v1.54.0
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0
+go install github.com/pressly/goose/v3/cmd/goose@v3.26.0
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
+```
+
+`go mod tidy` có thể tự nâng phiên bản thư viện (ví dụ goose, grpc). Sau khi chạy, kiểm lại bằng `go list -m github.com/jackc/pgx/v5 google.golang.org/grpc github.com/nats-io/nats.go github.com/google/uuid github.com/pressly/goose/v3`; lệch thì hạ lại bằng `go get <module>@<phiên bản ghim>`.
 
 ## 4. Cấu trúc repo
 
@@ -98,20 +112,28 @@ Một repo, một `go.mod` ở gốc cho cả ba service Go.
 │   └── bff/
 ├── pkg/
 │   ├── tenant/
+│   │   └── tenantgrpc/    interceptor metadata ↔ context (Q42)
 │   ├── db/
 │   ├── outbox/
 │   └── inbox/
+├── internal/
+│   └── testdb/            hỗ trợ test tích hợp: tạo CSDL riêng, migrate, xóa (Q42)
 ├── proto/
 │   └── mini/
 │       ├── order/v1/
 │       └── stock/v1/
 ├── gen/
 │   └── go/                mã sinh từ proto
+├── buf.yaml, buf.gen.yaml
 ├── web/
 ├── deploy/
-│   └── compose.yaml
+│   ├── compose.yaml
+│   └── initdb/            tạo vai trò và CSDL "mini" ở lần khởi động đầu (Q41)
+├── .env.example           tên biến môi trường; .env thật không commit
 └── README.md
 ```
+
+`internal/testdb`, `pkg/tenant/tenantgrpc`, `deploy/initdb` là **bổ sung ngoài đề** (Q41, Q42).
 
 Khuôn bên trong một service Go: xem [conventions.md](conventions.md), mục 1.
 

@@ -20,15 +20,15 @@ Nguyên văn mục 8 của đề:
 
 AC cần đạt: **AC-04 (mức SQL, Q2)**.
 
-- [ ] Viết proto cho `OrderService`, `StockService`; `buf lint` sạch; commit mã sinh vào `gen/go/` ([api-contract.md](api-contract.md), mục 1, 2, 7)
-- [ ] Viết `deploy/compose.yaml` cho PostgreSQL và NATS; `compose up` chạy được ([../tech-stack.md](../tech-stack.md), mục 3, 5)
-- [ ] Viết migration cho `mini_order` và `mini_stock` ([data-model.md](data-model.md), mục 2, 3, 4)
-- [ ] Tạo vai trò `mini_app`, `mini_owner`, `mini_relay` ([data-model.md](data-model.md), mục 6)
-- [ ] Bật RLS cho mọi bảng ([data-model.md](data-model.md), mục 5)
-- [ ] Nạp dữ liệu mẫu: 2 tenant, mặt hàng mẫu ([business-rules.md](business-rules.md), mục 4)
-- [ ] Viết `pkg/db` với `db.InTx` ([../conventions.md](../conventions.md), mục 6; [../tech-stack.md](../tech-stack.md), mục 6)
-- [ ] Service stock trả `ListItems` qua gRPC, kèm interceptor đọc metadata danh tính ([api-contract.md](api-contract.md), mục 1, 6)
-- [ ] Test AC-04 ở mức SQL bằng `mini_app` ([acceptance.md](acceptance.md), mục 2)
+- [x] Viết proto cho `OrderService`, `StockService`; `buf lint` sạch; commit mã sinh vào `gen/go/` ([api-contract.md](api-contract.md), mục 1, 2, 7)
+- [x] Viết `deploy/compose.yaml` cho PostgreSQL và NATS; `compose up` chạy được ([../tech-stack.md](../tech-stack.md), mục 3, 5)
+- [x] Viết migration cho `mini_order` và `mini_stock` ([data-model.md](data-model.md), mục 2, 3, 4)
+- [x] Tạo vai trò `mini_app`, `mini_owner`, `mini_relay` ([data-model.md](data-model.md), mục 6)
+- [x] Bật RLS cho mọi bảng ([data-model.md](data-model.md), mục 5)
+- [x] Nạp dữ liệu mẫu: 2 tenant, mặt hàng mẫu ([business-rules.md](business-rules.md), mục 4)
+- [x] Viết `pkg/db` với `db.InTx` ([../conventions.md](../conventions.md), mục 6; [../tech-stack.md](../tech-stack.md), mục 6)
+- [x] Service stock trả `ListItems` qua gRPC, kèm interceptor đọc metadata danh tính ([api-contract.md](api-contract.md), mục 1, 6)
+- [x] Test AC-04 ở mức SQL bằng `mini_app` ([acceptance.md](acceptance.md), mục 2)
 
 ## Ngày 2: service order
 

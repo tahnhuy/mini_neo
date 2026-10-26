@@ -22,21 +22,26 @@ Luồng gọi: `web → bff → order → stock`, sự kiện đi qua NATS. Sơ 
 | sqlc | Theo [docs/tech-stack.md](docs/tech-stack.md), mục 3 |
 | goose | Theo [docs/tech-stack.md](docs/tech-stack.md), mục 3 |
 | Docker (chạy `deploy/compose.yaml`) | Đề không ghim |
+| protoc-gen-go, protoc-gen-go-grpc (plugin của `buf generate`) | Theo [docs/tech-stack.md](docs/tech-stack.md), mục 3 |
+
+Lệnh cài các công cụ Go đúng phiên bản: xem [docs/tech-stack.md](docs/tech-stack.md), mục 3.
 
 ## 3. Từ máy trống đến demo
 
-Các lệnh dưới đây sẽ được điền khi có code. Không chạy lệnh nào chưa được điền.
+Bước 1–8 (phần `stock`) đã chạy được; các lệnh còn là placeholder sẽ được điền khi có code. Không chạy lệnh nào chưa được điền.
 
 **1. Clone repo**
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+git clone https://github.com/tahnhuy/mini_neo.git
+cd mini_neo
 ```
 
 **2. Sao chép cấu hình mẫu.** Cấu hình đọc từ biến môi trường. Sao chép `.env.example` thành `.env`, và không commit `.env` ([docs/conventions.md](docs/conventions.md), mục 9).
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+cp .env.example .env
+# Đổi mọi giá trị doi-mat-khau-* trong .env, kể cả mật khẩu nằm trong các URL.
 ```
 
 > **Gợi ý (ngoài đề):** Đề không nhắc tới `.env.example`. Đây là cách thường dùng để ghi tên các biến môi trường cần có mà không commit giá trị thật.
@@ -44,37 +49,46 @@ Các lệnh dưới đây sẽ được điền khi có code. Không chạy lệ
 **3. Chạy PostgreSQL và NATS** (`deploy/compose.yaml`, [docs/tech-stack.md](docs/tech-stack.md), mục 5)
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+docker compose --env-file .env -f deploy/compose.yaml up -d --wait
 ```
 
 **4. Tạo vai trò CSDL** `mini_owner`, `mini_app`, `mini_relay` ([docs/specs/data-model.md](docs/specs/data-model.md), mục 6)
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+# Tự động: deploy/initdb/01-roles.sh chạy ở lần khởi động đầu (volume còn trống),
+# tạo ba vai trò và CSDL "mini" thuộc mini_owner. Kiểm lại:
+docker compose --env-file .env -f deploy/compose.yaml exec postgres \
+  psql -U postgres -c "select rolname, rolbypassrls, rolcreatedb from pg_roles where rolname like 'mini_%'"
 ```
 
 **5. Chạy migration** bằng goose, với vai trò chủ bảng ([docs/specs/data-model.md](docs/specs/data-model.md), mục 6)
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+set -a; . ./.env; set +a   # nạp biến môi trường từ .env vào shell hiện tại
+goose -dir services/order/migrations -table goose_mini_order postgres "$MIGRATE_DATABASE_URL" up
+goose -dir services/stock/migrations -table goose_mini_stock postgres "$MIGRATE_DATABASE_URL" up
 ```
 
 **6. Nạp dữ liệu mẫu** ([docs/specs/business-rules.md](docs/specs/business-rules.md), mục 4)
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+# Không có lệnh riêng: dữ liệu mẫu là migration services/stock/migrations/00002_seed.sql,
+# đã chạy ở bước 5.
 ```
 
 **7. Sinh code** bằng `buf generate` (proto, [docs/specs/api-contract.md](docs/specs/api-contract.md), mục 7) và `sqlc generate` (truy vấn). Mã sinh từ proto đã được commit vào `gen/go/`; bước này chỉ cần làm khi sửa proto hoặc query.
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+buf generate
+(cd services/stock && sqlc generate)
 ```
 
 **8. Chạy `stock`, `order`, `bff`**
 
 ```bash
-<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+set -a; . ./.env; set +a
+go run ./services/stock/cmd/server
+# order, bff: <LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
 ```
 
 **9. Chạy web**
@@ -99,7 +113,7 @@ Các lệnh dưới đây sẽ được điền khi có code. Không chạy lệ
 | Test tích hợp | `go test -tags integration ./...` (điều kiện: [docs/specs/acceptance.md](docs/specs/acceptance.md), mục 3) |
 | Lint proto | `buf lint` |
 
-Biến môi trường và bước dựng CSDL, NATS cho test tích hợp: `<LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>`.
+Trước khi chạy test tích hợp: PostgreSQL phải đang chạy (bước 3) và nạp `.env` (`set -a; . ./.env; set +a`). Test tự tạo và xóa CSDL riêng bằng `mini_owner`, chạy truy vấn bằng `mini_app`. NATS riêng cho test (Q36, cần từ ngày 3): `docker compose --env-file .env -f deploy/compose.yaml --profile test up -d --wait nats-test`.
 
 `go test ./...`, `go test -tags integration ./...` và `buf lint` là nguyên văn của đề. Đề chỉ ghi tên `gofmt` và `go vet`; cờ `-l .` và đối số `./...` là cách gọi chuẩn của hai công cụ này, không phải script của repo.
 
@@ -124,7 +138,7 @@ Luồng demo đi theo các AC ([docs/specs/acceptance.md](docs/specs/acceptance.
 | AC-01 | | | |
 | AC-02 | | | |
 | AC-03 | | | |
-| AC-04 (SQL) | | | |
+| AC-04 (SQL) | Đạt | `go test -count=1 -tags integration -run AC04 -v ./services/order/...` | 2026-10-26 |
 | AC-04 (API) | | | |
 | AC-05 | | | |
 | AC-06 | | | |

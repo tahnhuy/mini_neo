@@ -4,7 +4,7 @@
 >
 > **Đối tượng đọc:** Người làm bài (khi viết migration, query sqlc), người chấm bài.
 >
-> **Nguồn:** mục 4.4, 4.5, 4.6, 4.7, 5 của đề; quyết định Q3, Q5, Q6, Q7, Q12, Q15, Q18, Q22, Q23, Q24, Q37.
+> **Nguồn:** mục 4.4, 4.5, 4.6, 4.7, 5 của đề; quyết định Q3, Q5, Q6, Q7, Q12, Q15, Q18, Q22, Q23, Q24, Q37, Q41.
 
 Quy tắc tiền: xem [../conventions.md](../conventions.md), mục 4. Quy tắc CSDL và nhãn BẮT BUỘC: xem [../conventions.md](../conventions.md), mục 6. Giá trị trạng thái đơn: xem [business-rules.md](business-rules.md). Cách dùng `outbox`/`inbox` và relay: xem [events.md](events.md).
 
@@ -279,7 +279,7 @@ Ba điều hay sai (nhãn và lý do: [../conventions.md](../conventions.md), m�
 
 1. Service phải kết nối bằng vai trò thường `mini_app`, không phải superuser hay chủ bảng (mục 6).
 2. Đặt tenant bằng `set_config(..., true)` trong từng giao dịch, không đặt cho cả kết nối.
-3. Chưa đặt `app.tenant_id` thì `current_setting` báo lỗi. Đề coi đây là điều mong muốn: quên đặt tenant thì truy vấn hỏng, không lộ dữ liệu.
+3. Chưa đặt `app.tenant_id` thì `current_setting` báo lỗi. Đề coi đây là điều mong muốn: quên đặt tenant thì truy vấn hỏng, không lộ dữ liệu. Kiểm thực tế trên `postgres:18.6`: nếu kết nối từng dùng `set_config(..., true)`, biến còn lại dưới dạng chuỗi rỗng, nên lỗi đổi thành `invalid input syntax for type uuid: ""`. Truy vấn vẫn hỏng, không lộ dữ liệu.
 
 Mã nghiệp vụ mở giao dịch qua `db.InTx(ctx, func(tx pgx.Tx) error)`. Quy tắc: xem [../conventions.md](../conventions.md), mục 6. Gói: xem [../tech-stack.md](../tech-stack.md), mục 6.
 
@@ -292,6 +292,7 @@ Mã nghiệp vụ mở giao dịch qua `db.InTx(ctx, func(tx pgx.Tx) error)`. Qu
 | `mini_relay` | Relay outbox trong mỗi service | `BYPASSRLS`; chỉ được cấp quyền trên bảng `outbox` |
 
 - Đề chỉ nói migration chạy bằng "vai trò khác (chủ bảng)". Q23 đặt tên `mini_owner` và không dùng `postgres`.
+- Theo Q41 (**bổ sung ngoài đề**): `deploy/initdb/01-roles.sh` tạo ba vai trò và CSDL `mini` thuộc `mini_owner`. `mini_owner` có thêm `CREATEDB` để test tích hợp tự tạo CSDL riêng. Schema do migration tạo; bảng version goose là `goose_mini_order` và `goose_mini_stock`.
 - Theo Q24 (**bổ sung ngoài đề**), hai service dùng chung `mini_app`, nên `mini_app` có quyền trên cả hai schema. Việc mỗi service chỉ đọc schema của mình dựa vào code, không dựa vào CSDL.
 
 > **Gợi ý (ngoài đề):** Đề không liệt kê quyền cụ thể. Có thể cấp cho `mini_app` quyền `SELECT`, `INSERT`, `UPDATE` trên các bảng nghiệp vụ, `outbox`, `inbox`. Cấp cho `mini_relay` quyền `SELECT`, `UPDATE` trên `outbox`, đủ cho vòng lặp relay ở mục 4.5 của đề.

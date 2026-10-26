@@ -1,0 +1,102 @@
+// Hợp đồng gRPC của service đơn (docs/specs/api-contract.md, mục 1, 2, 3).
+syntax = "proto3";
+
+package mini.order.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/tahnhuy/mini_neo/gen/go/mini/order/v1;orderv1";
+
+// OrderService: tạo, xem, duyệt, từ chối đơn.
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+  rpc ApproveOrder(ApproveOrderRequest) returns (ApproveOrderResponse);
+  rpc RejectOrder(RejectOrderRequest) returns (RejectOrderResponse);
+}
+
+// Money: tiền là chuỗi thập phân kèm mã tiền tệ, không dùng số thực.
+message Money {
+  // Ví dụ "1250000.00".
+  string amount = 1;
+  // Bài chỉ dùng "VND".
+  string currency_code = 2;
+}
+
+message OrderLine {
+  string sku = 1;
+  int32 quantity = 2;
+  Money unit_price = 3;
+  Money line_amount = 4;
+}
+
+// Order: status và allowed_actions là string, giữ nguyên giá trị như đề (Q26).
+message Order {
+  string id = 1;
+  string code = 2;
+  string status = 3;
+  string created_by = 4;
+  // Rỗng khi đơn chưa được duyệt hay từ chối.
+  string decided_by = 5;
+  // Rỗng khi đơn không bị từ chối.
+  string reject_reason = 6;
+  Money total_amount = 7;
+  repeated OrderLine lines = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  // Ví dụ ["APPROVE", "REJECT"] hoặc [].
+  repeated string allowed_actions = 11;
+}
+
+// CreateOrderLine: client chỉ gửi mã hàng và số lượng, không có trường giá.
+message CreateOrderLine {
+  string sku = 1;
+  int32 quantity = 2;
+}
+
+message CreateOrderRequest {
+  repeated CreateOrderLine lines = 1;
+}
+
+message CreateOrderResponse {
+  Order order = 1;
+}
+
+message GetOrderRequest {
+  string id = 1;
+}
+
+message GetOrderResponse {
+  Order order = 1;
+}
+
+message ListOrdersRequest {}
+
+message ListOrdersResponse {
+  // Tối đa 50 đơn mới nhất.
+  repeated Order orders = 1;
+}
+
+message ApproveOrderRequest {
+  string id = 1;
+}
+
+message ApproveOrderResponse {
+  Order order = 1;
+}
+
+message RejectOrderRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+message RejectOrderResponse {
+  Order order = 1;
+}
+
+// ErrorDetail đính vào status gRPC để mang mã lý do (Q29),
+// ví dụ "SELF_APPROVAL", "INVALID_TRANSITION".
+message ErrorDetail {
+  string reason = 1;
+}
