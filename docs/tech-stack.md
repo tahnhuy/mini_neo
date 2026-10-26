@@ -109,11 +109,13 @@ Một repo, một `go.mod` ở gốc cho cả ba service Go.
 ├── services/
 │   ├── order/
 │   ├── stock/
+│   │   └── stocktest/     dựng service kho cho test của service khác (Q42)
 │   └── bff/
 ├── pkg/
 │   ├── tenant/
 │   │   └── tenantgrpc/    interceptor metadata ↔ context (Q42)
 │   ├── db/
+│   ├── moneyconv/         đổi tiền chuỗi ↔ int64 xu (Q42)
 │   ├── outbox/
 │   └── inbox/
 ├── internal/
@@ -133,7 +135,7 @@ Một repo, một `go.mod` ở gốc cho cả ba service Go.
 └── README.md
 ```
 
-`internal/testdb`, `pkg/tenant/tenantgrpc`, `deploy/initdb` là **bổ sung ngoài đề** (Q41, Q42).
+`internal/testdb`, `pkg/tenant/tenantgrpc`, `pkg/moneyconv`, `services/stock/stocktest`, `deploy/initdb` là **bổ sung ngoài đề** (Q41, Q42).
 
 Khuôn bên trong một service Go: xem [conventions.md](conventions.md), mục 1.
 

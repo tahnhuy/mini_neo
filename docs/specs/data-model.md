@@ -73,7 +73,7 @@ Bảng đếm để sinh `orders.code` theo từng tenant.
 | `tenant_id` | `uuid` | Khóa chính, `NOT NULL` | Q7 |
 | `last_number` | `bigint`* | Số đã cấp gần nhất | Q7 |
 
-- Trong cùng giao dịch tạo đơn: khóa dòng của tenant bằng `FOR UPDATE`, tăng `last_number`, rồi tạo `code` = `DH-` + số đệm đủ 6 chữ số (ví dụ `DH-000001`).
+- Trong cùng giao dịch tạo đơn: `INSERT ... ON CONFLICT (tenant_id) DO UPDATE SET last_number = last_number + 1 RETURNING last_number`. Lệnh này khóa dòng đếm của tenant tới hết giao dịch, như `FOR UPDATE`, và không lỗi khóa chính khi hai đơn đầu tiên của tenant tạo cùng lúc. Rồi tạo `code` = `DH-` + số đệm đủ 6 chữ số (ví dụ `DH-000001`).
 - Không dùng `MAX()+1`.
 - Bảng này bật RLS như mọi bảng khác.
 

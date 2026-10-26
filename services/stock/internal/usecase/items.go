@@ -24,6 +24,7 @@ type TxRunner interface {
 // ItemRepo đọc mặt hàng trong giao dịch đang mở.
 type ItemRepo interface {
 	ListItems(ctx context.Context, tx pgx.Tx) ([]domain.Item, error)
+	GetPrices(ctx context.Context, tx pgx.Tx, skus []string) ([]domain.Item, error)
 }
 
 // Items là các usecase về mặt hàng.
@@ -50,6 +51,24 @@ func (u *Items) ListItems(ctx context.Context) ([]domain.Item, error) {
 	})
 	if err != nil {
 		return nil, fmt.Errorf("list items: %w", err)
+	}
+	return items, nil
+}
+
+// GetPrices trả đơn giá của các mã tìm thấy. Chỉ service đơn gọi, khi tạo đơn
+// (Q8: không có xác thực riêng cho lời gọi nội bộ, chỉ cần danh tính tenant).
+func (u *Items) GetPrices(ctx context.Context, skus []string) ([]domain.Item, error) {
+	if _, ok := tenant.FromContext(ctx); !ok {
+		return nil, ErrUnauthenticated
+	}
+	var items []domain.Item
+	err := u.tx.InTx(ctx, func(tx pgx.Tx) error {
+		var err error
+		items, err = u.repo.GetPrices(ctx, tx, skus)
+		return err
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get prices: %w", err)
 	}
 	return items, nil
 }

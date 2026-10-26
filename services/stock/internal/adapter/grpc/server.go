@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	stockv1 "github.com/tahnhuy/mini_neo/gen/go/mini/stock/v1"
-	"github.com/tahnhuy/mini_neo/services/stock/internal/adapter/moneyconv"
+	"github.com/tahnhuy/mini_neo/pkg/moneyconv"
 	"github.com/tahnhuy/mini_neo/services/stock/internal/domain"
 	"github.com/tahnhuy/mini_neo/services/stock/internal/usecase"
 )
@@ -19,9 +19,10 @@ import (
 // ItemLister là phần usecase mà adapter cần.
 type ItemLister interface {
 	ListItems(ctx context.Context) ([]domain.Item, error)
+	GetPrices(ctx context.Context, skus []string) ([]domain.Item, error)
 }
 
-// Server cài đặt mini.stock.v1.StockService. GetItems làm ở ngày 2.
+// Server cài đặt mini.stock.v1.StockService.
 type Server struct {
 	stockv1.UnimplementedStockServiceServer
 	items ItemLister
@@ -48,6 +49,25 @@ func (s *Server) ListItems(ctx context.Context, _ *stockv1.ListItemsRequest) (*s
 			OnHand:    it.OnHand,
 			Reserved:  it.Reserved,
 			Available: it.Available(),
+		})
+	}
+	return resp, nil
+}
+
+// GetItems trả đơn giá của các mã tìm thấy (Q27); không báo lỗi cho mã thiếu.
+func (s *Server) GetItems(ctx context.Context, req *stockv1.GetItemsRequest) (*stockv1.GetItemsResponse, error) {
+	if len(req.GetSkus()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "cần ít nhất một mã hàng")
+	}
+	items, err := s.items.GetPrices(ctx, req.GetSkus())
+	if err != nil {
+		return nil, s.toStatus(ctx, err)
+	}
+	resp := &stockv1.GetItemsResponse{Items: make([]*stockv1.ItemPrice, 0, len(items))}
+	for _, it := range items {
+		resp.Items = append(resp.Items, &stockv1.ItemPrice{
+			Sku:       it.SKU,
+			UnitPrice: &stockv1.Money{Amount: moneyconv.FromCents(it.UnitPrice.Cents), CurrencyCode: it.UnitPrice.Currency},
 		})
 	}
 	return resp, nil

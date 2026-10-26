@@ -28,7 +28,7 @@ Lệnh cài các công cụ Go đúng phiên bản: xem [docs/tech-stack.md](doc
 
 ## 3. Từ máy trống đến demo
 
-Bước 1–8 (phần `stock`) đã chạy được; các lệnh còn là placeholder sẽ được điền khi có code. Không chạy lệnh nào chưa được điền.
+Bước 1–8 (phần `stock`, `order`) đã chạy được; các lệnh còn là placeholder sẽ được điền khi có code. Không chạy lệnh nào chưa được điền.
 
 **1. Clone repo**
 
@@ -81,14 +81,16 @@ goose -dir services/stock/migrations -table goose_mini_stock postgres "$MIGRATE_
 ```bash
 buf generate
 (cd services/stock && sqlc generate)
+(cd services/order && sqlc generate)
 ```
 
 **8. Chạy `stock`, `order`, `bff`**
 
 ```bash
 set -a; . ./.env; set +a
-go run ./services/stock/cmd/server
-# order, bff: <LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
+go run ./services/stock/cmd/server   # cửa sổ terminal 1
+go run ./services/order/cmd/server   # cửa sổ terminal 2 (nạp .env như trên)
+# bff: <LỆNH CẦN ĐIỀN SAU KHI CÓ CODE>
 ```
 
 **9. Chạy web**
@@ -135,17 +137,17 @@ Luồng demo đi theo các AC ([docs/specs/acceptance.md](docs/specs/acceptance.
 
 | AC | Đạt / Không | Lệnh đã chạy | Ngày chạy |
 |---|---|---|---|
-| AC-01 | | | |
-| AC-02 | | | |
-| AC-03 | | | |
+| AC-01 (phần tổng tiền và giá từ kho) | Đạt | `go test -count=1 -run AC01 -v ./services/order/...` và `go test -count=1 -tags integration -run AC01 -v ./services/order/...` | 2026-10-26 |
+| AC-02 (phần `PERMISSION_DENIED`, `allowed_actions` rỗng) | Đạt | `go test -count=1 -run AC02 -v ./services/order/...` | 2026-10-26 |
+| AC-03 | Đạt | `go test -count=1 -run AC03 -v ./services/order/...` | 2026-10-26 |
 | AC-04 (SQL) | Đạt | `go test -count=1 -tags integration -run AC04 -v ./services/order/...` | 2026-10-26 |
-| AC-04 (API) | | | |
+| AC-04 (API) | Đạt | `go test -count=1 -tags integration -run AC04 -v ./services/order/...` | 2026-10-26 |
 | AC-05 | | | |
 | AC-06 | | | |
 | AC-07 | | | |
 | AC-08 (≥ 20 lần, có khóa) | | | |
 | AC-08 (đối chứng âm, bỏ khóa: phải đỏ) | | | |
-| AC-09 | | | |
+| AC-09 | Đạt | `go test -count=1 -run AC09 -v ./services/order/...` | 2026-10-26 |
 
 | Lệnh kiểm (mục 4) | Đạt / Không | Lệnh đã chạy | Ngày chạy |
 |---|---|---|---|

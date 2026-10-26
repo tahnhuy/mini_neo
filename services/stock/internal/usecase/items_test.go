@@ -28,6 +28,18 @@ func (f fakeRepo) ListItems(context.Context, pgx.Tx) ([]domain.Item, error) {
 	return f.items, f.err
 }
 
+func (f fakeRepo) GetPrices(context.Context, pgx.Tx, []string) ([]domain.Item, error) {
+	return f.items, f.err
+}
+
+func TestGetPricesRequiresTenant(t *testing.T) {
+	tx := &fakeTx{}
+	_, err := NewItems(tx, fakeRepo{}).GetPrices(context.Background(), []string{"BAN-01"})
+	if !errors.Is(err, ErrUnauthenticated) || tx.calls != 0 {
+		t.Fatalf("err = %v, tx calls = %d; want ErrUnauthenticated, 0", err, tx.calls)
+	}
+}
+
 func ctxTenantA() context.Context {
 	return tenant.WithIdentity(context.Background(), tenant.Identity{
 		TenantID: uuid.MustParse("11111111-1111-1111-1111-111111111111"),

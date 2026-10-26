@@ -34,12 +34,12 @@ AC cần đạt: **AC-04 (mức SQL, Q2)**.
 
 AC cần đạt: **AC-01, AC-02, AC-03, AC-09** (unit test); **AC-04 (mức API, Q2)**.
 
-- [ ] `CreateOrder`: gọi `StockService.GetItems` lấy giá, sinh mã đơn ([api-contract.md](api-contract.md), mục 1, 2; [data-model.md](data-model.md), mục 2)
-- [ ] `GetOrder` kèm `allowed_actions` ([api-contract.md](api-contract.md), mục 1)
-- [ ] `ListOrders` ([api-contract.md](api-contract.md), mục 1, 2)
-- [ ] `ApproveOrder`, `RejectOrder` với bảng chuyển trạng thái ở `domain` ([business-rules.md](business-rules.md), mục 3; [api-contract.md](api-contract.md), mục 3)
-- [ ] Unit test AC-01, AC-02, AC-03, AC-09 ([acceptance.md](acceptance.md), mục 1)
-- [ ] Test AC-04 ở mức API (`GetOrder` trả `NOT_FOUND`) ([acceptance.md](acceptance.md), mục 2)
+- [x] `CreateOrder`: gọi `StockService.GetItems` lấy giá, sinh mã đơn ([api-contract.md](api-contract.md), mục 1, 2; [data-model.md](data-model.md), mục 2)
+- [x] `GetOrder` kèm `allowed_actions` ([api-contract.md](api-contract.md), mục 1)
+- [x] `ListOrders` ([api-contract.md](api-contract.md), mục 1, 2)
+- [x] `ApproveOrder`, `RejectOrder` với bảng chuyển trạng thái ở `domain` ([business-rules.md](business-rules.md), mục 3; [api-contract.md](api-contract.md), mục 3)
+- [x] Unit test AC-01, AC-02, AC-03, AC-09 ([acceptance.md](acceptance.md), mục 1)
+- [x] Test AC-04 ở mức API (`GetOrder` trả `NOT_FOUND`) ([acceptance.md](acceptance.md), mục 2)
 
 ## Ngày 3: outbox, relay, inbox, giữ hàng
 
